@@ -38,16 +38,22 @@
       checks = each (system: {
         cli = self.packages.${system}.default;
         plugin = self.packages.${system}.neovim-plugin;
-        plugin-behavior = nixpkgs.legacyPackages.${system}.runCommand "agent-notes-plugin-check" {
-          nativeBuildInputs = [ nixpkgs.legacyPackages.${system}.neovim self.packages.${system}.default ];
-        } ''
-          export HOME="$TMPDIR/home"
-          export XDG_STATE_HOME="$HOME/state"
-          export AGENT_NOTES_SOURCE=${self}
-          mkdir -p "$HOME"
-          nvim --headless -u NONE -l ${./checks/plugin.lua}
-          touch "$out"
-        '';
+        plugin-behavior =
+          nixpkgs.legacyPackages.${system}.runCommand "agent-notes-plugin-check"
+            {
+              nativeBuildInputs = [
+                nixpkgs.legacyPackages.${system}.neovim
+                self.packages.${system}.default
+              ];
+            }
+            ''
+              export HOME="$TMPDIR/home"
+              export XDG_STATE_HOME="$HOME/state"
+              export AGENT_NOTES_SOURCE=${self}
+              mkdir -p "$HOME"
+              nvim --headless -u NONE -l ${./checks/plugin.lua}
+              touch "$out"
+            '';
       });
       devShells = each (
         system:
@@ -68,6 +74,20 @@
           };
         }
       );
-      formatter = each (system: nixpkgs.legacyPackages.${system}.nixfmt);
+      formatter = each (
+        system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+        in
+        pkgs.writeShellApplication {
+          name = "format-nix";
+          runtimeInputs = [
+            pkgs.git
+            pkgs.nixfmt
+            pkgs.findutils
+          ];
+          text = ''git ls-files -z -- '*.nix' | xargs -0 -r nixfmt "$@"'';
+        }
+      );
     };
 }
