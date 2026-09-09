@@ -64,6 +64,8 @@
           default = pkgs.mkShell {
             packages = [
               pkgs.go
+              pkgs.goreleaser
+              pkgs.python3
               pkgs.git
               pkgs.nixfmt
               pkgs.stylua

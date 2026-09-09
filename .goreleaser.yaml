@@ -1,0 +1,23 @@
+version: 2
+project_name: agent-notes
+builds:
+  - id: note
+    main: ./cmd/note
+    binary: note
+    env: [CGO_ENABLED=0]
+    flags: [-trimpath]
+    goos: [darwin, linux]
+    goarch: [amd64, arm64]
+    ignore:
+      - goos: darwin
+        goarch: amd64
+archives:
+  - id: agent-notes
+    ids: [note]
+    formats: [tar.gz]
+    name_template: agent-notes_{{ .Version }}_{{ .Os }}_{{ .Arch }}
+    files: [LICENSE, README.md]
+checksum:
+  name_template: checksums.txt
+changelog:
+  use: github-native
